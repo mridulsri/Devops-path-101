@@ -1,0 +1,29 @@
+version: '3'
+name: fc_apps
+services:
+  rabbitmq:
+    image: rabbitmq:3.12.2-management
+    hostname: fc-rabbitmq
+    ports:
+      - "5672:5672"   # The standard AMQP protocol port
+      - "15672:15672" # RabbitMQ Messaging Port (http)
+      # - "15692:15692" # prometheus
+    env_file: ./rabbitmq/.env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-fc_admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-fc_admin@123}
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq/mnesia
+      # - ./rabbitmq/logs:/var/log/rabbitmq
+      # - ./rabbitmq/config:/etc/rabbitmq
+    networks:
+      - fc_app_net
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+networks:
+  fc_app_net:
+    driver: bridge
